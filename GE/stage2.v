@@ -1,0 +1,34 @@
+module stage2(pass1, bonus1, hard, luck, pass2, bonus2);
+input pass1;
+input [1:0] bonus1;
+// stage input
+input [6:0] work;// 0~100
+// random parameter
+input [6:0] hard;// 0~100
+input [1:0] luck;
+output reg pass2;
+output reg [1:0] bonus2;
+
+wire [6:0] b1,b2,total,score;
+wire [1:0] count;
+
+assign b1 = {3'd0,bonus1,2'd0};
+assign b2 = {3'd0,luck,2'd0};
+assign total = work + b1 + b2;// max: 100+12+12=124 < 127 , no overflow
+
+assign score = (total>7'd100)?(7'd100):(7'd0);
+assign count = total[6:5];//  /32
+
+always@(*)
+	if( (score>hard)&pass )
+		begin
+			pass2 <= 1'd1;
+			bonus2 <= count;
+		end
+	else
+		begin
+			pass2 <= 1'd0;
+			bonus2 <= 2'd0;
+		end
+endmodule		
+		
