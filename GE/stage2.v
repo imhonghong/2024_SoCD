@@ -41,7 +41,10 @@ module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	output bonus2;
 	wire [4:0] additional_point;
 	wire [6:0] energy
-	always@(*) begin
+	assign very_hard = hard[4] & 1'b1; //hard>=16
+	assign notso_hard = ~(hard[4] | hard[3] | hard[2]); //hard<3
+	assign medium_hard = ~(very_hard | medium_hard);
+	always@(*) begin // additional point logic
 		case(hard)
 			
 		endcase
