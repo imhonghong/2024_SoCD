@@ -29,7 +29,7 @@ def stage2(pass1, bonus1_bin, effort_bin, hard_bin, random2_bin):
 
     # Calculate pass_test and pass_liver
     pass_test = 1 if score >= 70 else 0
-    pass_liver = 1 if (effort - (bonus1 << 2)) > 80 else (random2[4] or random2[5])
+    pass_liver = 1 if (effort - (bonus1 << 2)) > 80 else (random2[4] or random2[0])
 
     # Calculate pass2 as the AND of pass_test, pass_liver, and pass1
     pass2 = pass_test and pass_liver and pass1
@@ -51,7 +51,7 @@ pass1 = True
 bonus1_bin = [1, 0]                 # 2-bit binary list for bonus1
 effort_bin = [1, 1, 0, 1, 1, 0, 1]  # 7-bit binary list for effort (45 in decimal)
 hard_bin = [1, 0, 0, 1, 1]          # 5-bit binary list for hard (19 in decimal)
-random2_bin = [0, 1, 1, 0, 1, 0, 1] # 7-bit binary list for random2
+random2_bin = [ 1, 0, 1, 0, 1]      # 5-bit binary list for random2
 
 bonus2, pass2 = stage2(pass1, bonus1_bin, effort_bin, hard_bin, random2_bin)
 print("pass1:", pass1)
