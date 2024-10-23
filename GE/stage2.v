@@ -39,13 +39,20 @@ module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	input [4:0] hard, random2;
 	output pass2;
 	output bonus2;
-	wire [4:0] additional_point;
+	reg [2:0] additional_point;
 	wire [6:0] energy;
 	assign very_hard = hard[4] & 1'b1; //hard>=16
 	assign notso_hard = ~(hard[4] | hard[3] | hard[2]); //hard<3
 	assign medium_hard = ~(very_hard | notso_hard);
+	wire [2:0] hard_rate;
 	assign hard_rate = {very_hard, medium_hard, notso_hard};
-	always@()
+	always@(*)
+		case(hard_rate)
+			3'b100:
+			3'b010:
+			3'b001:
+			default: additional_point<=3'd0;
+		endcase
 	assign pass_test = (effort - hard + additional_point >= 7'd70)? 1'b1: 1'b0;
 	assign pass_liver = 
 	
