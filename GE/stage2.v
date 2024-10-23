@@ -1,64 +1,29 @@
-module stage2(pass1, bonus1, hard, luck, pass2, bonus2);
-input pass1;
-input [1:0] bonus1;
-// stage input
-input [6:0] work;// 0~100
-// random parameter
-input [6:0] hard;// 0~100
-input [1:0] luck;
-output reg pass2;
-output reg [1:0] bonus2;
-
-wire [6:0] b1,b2,total,score;
-wire [1:0] count;
-
-assign b1 = {3'd0,bonus1,2'd0};
-assign b2 = {3'd0,luck,2'd0};
-assign total = work + b1 + b2;// max: 100+12+12=124 < 127 , no overflow
-
-assign score = (total>7'd100)?(7'd100):(7'd0);
-assign count = total[6:5];//  /32
-
-always@(*)
-	if( (score>hard)&pass )
-		begin
-			pass2 <= 1'd1;
-			bonus2 <= count;
-		end
-	else
-		begin
-			pass2 <= 1'd0;
-			bonus2 <= 2'd0;
-		end
-endmodule		
-
 module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	input pass1;
 	input [1:0] bonus1;
 	input [6:0] effort;
 	input [4:0] hard, random2;
 	output pass2;
-	output bonus2;
+	output [1:0] bonus2;
 	reg [2:0] additional_point;
-	wire [6:0] energy;
 	assign very_hard = hard[4] & 1'b1; //hard>=16
 	assign notso_hard = ~(hard[4] | hard[3] | hard[2]); //hard<3
 	assign medium_hard = ~(very_hard | notso_hard);
-	wire [2:0] hard_rate;
-	assign hard_rate = {very_hard, medium_hard, notso_hard};
-	always@(*)
+	always@(*) begin
 		case(hard_rate)
-			3'b100:
-			3'b010:
-			3'b001:
-			default: additional_point<=3'd0;
+			3'b100: additional_point <= (random2[0] | random2[1])? 3'd8 : 3'd0;
+			3'b010: additional_point <= {random2[3], 1'b0, random2[4]};
+			default: additional_point<= 3'd0;
 		endcase
-	assign pass_test = (effort - hard + additional_point >= 7'd70)? 1'b1: 1'b0;
-	assign pass_liver = 
-	
-/*
-student: effort-> pass/fail
-	too much effort-> stick liver(Cirrhosis)
-teacher: hard -> 	easy/hard to pass
-	too hard -> additional point
- */
+		case
+		endcase
+	end
+	wire [6:0] score;
+	assign score = effort - {2'b00, hard} + {4'b0000, additional_point};
+	assign pass_test = (score >= 7'd70)? 1'b1: 1'b0;
+	assign pass_liver = (effort - {3'b000, bonus1, 2'b00} > 7'd80)? (random2[4] | random2[5]) :1'b1;
+	assign pass2 = pass_test & pass_liver & pass1;
+	assign bonus2 = (score > 7'd94)? 2'b11 :
+		(score > 7'd87)? 2'b10 :
+		(score > 7'd80)? 2'b01 : 2'b00;
+endmodule
