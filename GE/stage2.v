@@ -31,4 +31,23 @@ always@(*)
 			bonus2 <= 2'd0;
 		end
 endmodule		
+
+module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
+	input pass1;
+	input [1:0] bonus1;
+	input [6:0] effort, hard, random2;
+	output pass2;
+	output bonus2;
+	wire [4:0] additional_point;
+
+	wire [6:0] energy
+	always@(*) begin
 		
+	end
+	
+/*
+student: effort-> pass/fail
+	too much effort-> stick liver(Cirrhosis)
+teacher: hard -> 	easy/hard to pass
+	too hard -> additional point
+ */
