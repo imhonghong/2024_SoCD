@@ -1,8 +1,8 @@
 module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	input pass1;
 	input [1:0] bonus1;
-	input [6:0] effort;
-	input [4:0] hard, random2;
+	input [6:0] effort, random2;
+	input [4:0] hard;
 	output pass2;
 	output [1:0] bonus2;
 	reg [2:0] additional_point;
