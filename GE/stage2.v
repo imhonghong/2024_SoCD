@@ -35,15 +35,19 @@ endmodule
 module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	input pass1;
 	input [1:0] bonus1;
-	input [6:0] effort, hard, random2;
+	input [6:0] effort;
+	input [4:0] hard, random2;
 	output pass2;
 	output bonus2;
 	wire [4:0] additional_point;
-
 	wire [6:0] energy
 	always@(*) begin
-		
+		case(hard)
+			
+		endcase
 	end
+	assign pass_test = (effort - hard + additional_point >= 7'd70)? 1'b1: 1'b0;
+	assign pass_liver = 
 	
 /*
 student: effort-> pass/fail
