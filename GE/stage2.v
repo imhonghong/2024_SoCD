@@ -12,7 +12,7 @@ module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	wire [1:0] hard_rate = {very_hard, medium_hard};
 	always@(*)
 		case(hard_rate)
-			2'b10: additional_point <= (random2[0] | random2[1])? 3'd8 : 3'd0;
+			2'b10: additional_point <= (random2[0] | random2[1])? 3'd7 : 3'd0;
 			2'b01: additional_point <= {random2[3], 1'b0, random2[4]};
 			default: additional_point<= 3'd0;
 		endcase
