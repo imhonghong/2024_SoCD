@@ -1,13 +1,9 @@
 module stage3(pass3, luck3, slide, timing, bonus2, pass2);
     output          pass3;
-    input   [2:0]   slide;
-    input   [2:0]   timing;
-    input   [2:0]   luck3;
+	input   [2:0]   slide, timing, luck3;
     input   [1:0]   bonus2;
     input           pass2;
     reg             accident0, accident1, accident2, accident3, fail0, fail1;
-    wire    [2:0]   bad;
-	wire			bonus3;
    always@(*) //slide quality
         if(slide == 3'd0)
             fail0 = 1'd0;
@@ -26,7 +22,7 @@ module stage3(pass3, luck3, slide, timing, bonus2, pass2);
             accident2 = (timing^(luck3[2:0]) == 3'b010)? ((bonus2>=2'd1)?1'b0:1'b1) : 1'b0;
         else
             accident3 = (timing^(luck3[2:0]) == 3'b100)? ((bonus2>=2'd2)?1'b0:1'b1) : 1'b0;
-	assign bonus3 = ((slide>3'd4)&&(accident1==0))? 1'b1 : 1'b0;
-    assign bad = accident0*2 + accident1 + accident2*2 + accident3;
+	wire bonus3 = ((slide>3'd4)&&(accident1==0))? 1'b1 : 1'b0;
+	wire [2:0] bad = accident0*2 + accident1 + accident2*2 + accident3;
     assign pass3 = (pass2 && fail0 && fail1)?((bad <= 3'd1)? 1'b1 :((bonus3)?1'b1 : 1'b0)) : 1'b0;
 endmodule
