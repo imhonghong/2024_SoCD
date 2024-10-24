@@ -15,7 +15,7 @@ def stage1(speed_bin, random1_bin, breakfast_bin, movement_bin, weather_bin):
     speed_UpperBound = 70 if weather else 50
     
     # Determine conditions for over speed, turtle speed, late, car accident, and no parking
-    over_speed = 1 if speed < speed_UpperBound else 0
+    over_speed = 1 if speed > speed_UpperBound else 0
     turtle_speed = 1 if speed < speed_LowerBound else 0
     late = (random1[2] ^ random1[3]) if turtle_speed else 0
     car_accident = (random1[0] | random1[1]) if over_speed else 0
