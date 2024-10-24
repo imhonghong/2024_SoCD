@@ -1,66 +1,59 @@
-def binary_to_int(bin_list):
-    """Convert binary list to integer."""
-    return int("".join(map(str, bin_list)), 2)
 
-def stage1(speed_bin, random1_bin, breakfast_bin, movement_bin, weather_bin):
-    # Convert binary inputs to integers
-    speed = binary_to_int(speed_bin)
-    random1 = random1_bin
-    breakfast = binary_to_int(breakfast_bin)
-    movement = movement_bin
-    weather = binary_to_int(weather_bin)  # Convert single-bit binary list to integer
-    
-    # Set speed bounds based on weather
-    speed_LowerBound = 30 if weather else 20
-    speed_UpperBound = 70 if weather else 50
-    
-    # Determine conditions for over speed, turtle speed, late, car accident, and no parking
-    over_speed = 1 if speed > speed_UpperBound else 0
-    turtle_speed = 1 if speed < speed_LowerBound else 0
-    late = (random1[2] ^ random1[3]) if turtle_speed else 0
-    car_accident = (random1[0] | random1[1]) if over_speed else 0
-    no_parking = random1[4] & random1[2] & random1[0]
-    
-    # Determine if the pass is successful
-    pass1 = not (car_accident or no_parking or late)
-    
-    # Initialize bonus1 to (2-bit) based on breakfast and movement conditions
-    bonus1 = [0, 0]
-    
-    if breakfast == 1:  # 2'b01
+def stage1(input_str):
+    # input str: 19-bit binary string, split to 7,7,2,2,1
+    # output: 3-bit binary string
+    input_list = str(input_str)
+    speed = input_list[:7]
+    random1 = input_list[7:14]
+    breakfast = input_list[14:16]
+    movement = input_list[16:18]
+    weather = input_list[18]
+    # convert every element from "str" list to "int" list
+    speed = [int(i) for i in speed]
+    speed_dec = int("".join(map(str, speed)), base=2)
+    random1 = [int(i) for i in random1]
+    breakfast = [int(i) for i in breakfast]
+    movement = [int(i) for i in movement]
+    weather = int(weather)
+    # pass logic
+    speed_Lowerbound = 30 if weather == 1 else 20
+    speed_Upperbound = 70 if weather == 1 else 50
+    over_speed = speed_dec > speed_Upperbound
+    turtle_speed = speed_dec < speed_Lowerbound
+    late = (random1[6-2] ^ random1[6-3]) if turtle_speed else 0
+    car_accident = (random1[6-0] ^ random1[6-1]) if over_speed else 0
+    no_parking = random1[6-4] and random1[6-2] and random1[6-0]
+    pass1 = not (late or car_accident or no_parking)
+    pass1 = int(pass1)
+    # breakfast logic
+    if breakfast==[0,0]:
+        bonus1 = [0,0]
+    elif breakfast==[0,1]:
+        bonus1 = [0, movement[0] or movement[1]] if over_speed else [0, movement[0] ^ movement[1]]
+    elif breakfast==[1,0]:
         if over_speed:
-            bonus1 = [0, int(any(movement))]
-        else:
-            bonus1 = [0, int(movement[0] ^ movement[1])]
-    
-    elif breakfast == 2:  # 2'b10
-        if over_speed:
-            bonus1 = [int(any(movement)), 0]
+            bonus1 = [movement[0] or movement[1], 0]
         elif turtle_speed:
-            bonus1 = [int(movement[1] & random1[2]), 0]
+            bonus1 = [movement[0] and random1[6-2], 0]
         else:
-            bonus1 = [int(movement[1] ^ movement[0] ^ random1[0]), 0]
-    
-    elif breakfast == 3:  # 2'b11
-        if movement == [random1[3], random1[5]]:
-            bonus1 = [1, 1]
-        else:
-            bonus1 = [0, 0]
-    
-    return bonus1, pass1
+            bonus1 = [movement[0] ^ movement[1], 0]
+    else:
+        bonus1 = [1,1] if (movement[1]==random1[6-3] and movement[0]==random1[6-5]) else [0,0]
+    # output str = bonus1[0], bonus1[1], pass1
+    output_str = str(bonus1[0]) + str(bonus1[1]) + str(pass1)
+    return output_str
 
-# Example Usage:
-speed_bin = [1, 0, 1, 0, 0, 1, 1]       # 7-bit binary list for speed (45 in decimal)
-random1_bin = [0, 1, 1, 1, 1, 1, 1]     # 7-bit binary list for random1
-breakfast_bin = [1, 0]                  # 2-bit binary list for breakfast (2 in decimal)
-movement_bin = [1, 0]                   # 2-bit binary list for movement
-weather_bin = [1]                       # 1-bit binary list for weather (True)
+# read input_str from stage1_input.txt
+if __name__ == "__main__" :
 
-bonus1, pass1 = stage1(speed_bin, random1_bin, breakfast_bin, movement_bin, weather_bin)
-print("speed:", binary_to_int(speed_bin))
-print("random1:", binary_to_int(random1_bin))
-print("breakfast:", binary_to_int(breakfast_bin))
-print("movement:", binary_to_int(movement_bin))
-print("weather:", binary_to_int(weather_bin))
-print("Bonus1:", bonus1)
-print("Pass1:", pass1)
+    input_file = open("stage1_input.txt", "r")
+    output_file = open("stage1_output.txt", "w")
+    # read line by line from input file
+    
+    for line in input_file:
+        input_str = line.strip()
+        output_str = stage1(input_str)
+        print(output_str, file=output_file)
+    input_file.close()
+    output_file.close()
+    print("done")
