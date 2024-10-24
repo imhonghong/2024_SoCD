@@ -8,7 +8,7 @@ wire [6:0] speed_UpperBound, speed_LowerBound;
 wire late, car_accident,no_parking, over_speed, turtle_speed;
 assign speed_LowerBound = (weather)? 7'd30 : 7'd20;	//set speed upper bound by weather
 assign speed_UpperBound = (weather)? 7'd70 : 7'd50; //set speed lower bound by weather
-assign over_speed = (speed < speed_UpperBound)? 1'd1: 1'd0;
+assign over_speed = (speed > speed_UpperBound)? 1'd1: 1'd0;
 assign turtle_speed = (speed < speed_LowerBound)? 1'd1: 1'd0;
 assign late = (turtle_speed)? (random1[2] ^ random1[3]) : 1'd0; //set too-slow punishment
 assign car_accident = (over_speed)? (random1[0] | random1[1]) : 1'd0; //set too-fast punishment
