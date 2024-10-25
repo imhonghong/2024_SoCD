@@ -1,63 +1,57 @@
-def binary_to_int(bin_list):
-    """Convert binary list to integer."""
-    return int("".join(map(str, bin_list)), 2)
+def stage2(input_str):
+    # input str: 19-bit binary string, split to 1,2,7,5,5
+    # output: 3-bit binary string
+    input_list = str(input_str)
+    pass1 = int(input_list[0])
+    bonus1 = input_list[1:3]
+    effort = input_list[3:10]
+    hard = input_list[10:15]
+    random2 = input_list[15:20]
+    # convert every element from "str" list to "int" list
+    effort = [int(i) for i in effort]
+    hard = [int(i) for i in hard]
+    random2 = [int(i) for i in random2]
+    pass1 = bool(pass1)
+    bonus1 = [int(i) for i in bonus1]
 
-def stage2(pass1, bonus1_bin, effort_bin, hard_bin, random2_bin):
-    # Convert binary inputs to integers
-    bonus1 = binary_to_int(bonus1_bin)
-    effort = binary_to_int(effort_bin)
-    hard = binary_to_int(hard_bin)
-    random2 = random2_bin
+    effort_dec = int("".join(map(str, effort)), base=2)
+    hard_dec = int("".join(map(str, hard)), base=2)
+    bonus1_dec = int("".join(map(str, bonus1)), base=2)
 
-    # Determine very_hard, notso_hard, medium_hard based on the 'hard' input
-    very_hard = 1 if hard >= 16 else 0
-    notso_hard = 1 if hard < 3 else 0
-    medium_hard = 1 if not (very_hard or notso_hard) else 0
-
-    # Define hard_rate based on very_hard and medium_hard
-    hard_rate = (very_hard << 1) | medium_hard
-    
-    # Calculate additional_point based on hard_rate and random2
-    additional_point = 0
-    if hard_rate == 2:  # 2'b10
-        additional_point = 7 if (random2[0] or random2[1]) else 0
-    elif hard_rate == 1:  # 2'b01
-        additional_point = (random2[3] << 2) | (random2[4] << 0)
-
-    # Calculate score
-    score = effort - hard + additional_point
-
-    # Calculate pass_test and pass_liver
-    pass_test = 1 if score >= 70 else 0
-    pass_liver = 1 if (effort - (bonus1 << 2)) > 80 else (random2[4] or random2[0])
-
-    # Calculate pass2 as the AND of pass_test, pass_liver, and pass1
-    pass2 = pass_test and pass_liver and pass1
-
-    # Calculate bonus2 based on score
-    if score > 94:
-        bonus2 = [1, 1]  # 2'b11
-    elif score > 87:
-        bonus2 = [1, 0]  # 2'b10
-    elif score > 80:
-        bonus2 = [0, 1]  # 2'b01
+    very_hard = hard_dec >= 16
+    notso_hard = hard_dec < 3
+    medium_hard = not(notso_hard or very_hard)
+    if very_hard:
+        additional_point = 7 if (random2[4-0] | random2[4-1]) else 0
+    elif medium_hard:
+        additional_point = random2[4-3]*4 + random2[4-4]
     else:
-        bonus2 = [0, 0]  # 2'b00
+        additional_point = 0
+    score = effort_dec + additional_point - hard_dec if effort_dec + additional_point < 128 else effort_dec + additional_point - hard_dec - 128
+    pass_test = score >= 70
+    pass_liver = (random2[4-0]|random2[4-4]) if effort_dec + bonus1_dec*4 >=80 else 1
+    pass2 = pass1 and pass_test and pass_liver
+    pass2 = int(pass2)
+    if score > 94:
+        bonus2 = "11"
+    elif score > 87:
+        bonus2 = "10"
+    elif score > 80:
+        bonus2 = "01"
+    else:
+        bonus2 = "00"
+    output_str = bonus2 + str(pass2)
+    return output_str
 
-    return bonus2, pass2
 
-# Example Usage:
-pass1 = True
-bonus1_bin = [1, 0]                 # 2-bit binary list for bonus1
-effort_bin = [1, 1, 0, 1, 1, 0, 1]  # 7-bit binary list for effort (45 in decimal)
-hard_bin = [1, 0, 0, 1, 1]          # 5-bit binary list for hard (19 in decimal)
-random2_bin = [ 1, 0, 1, 0, 1]      # 5-bit binary list for random2
 
-bonus2, pass2 = stage2(pass1, bonus1_bin, effort_bin, hard_bin, random2_bin)
-print("pass1:", pass1)
-print("bonus1:", binary_to_int(bonus1_bin))
-print("effort:", binary_to_int(effort_bin))
-print("hard:", binary_to_int(hard_bin))
-print("random2:", binary_to_int(random2_bin))
-print("Bonus2:", bonus2)
-print("Pass2:", pass2)
+if __name__ == "__main__" :
+    input_file = open("stage2_input.txt", "r")
+    output_file = open("stage2_output.txt", "w")
+    for line in input_file:
+        input_str = line.strip()
+        output_str = stage2(input_str)
+        print(output_str, file=output_file)
+    input_file.close()
+    output_file.close()
+    print("done")
