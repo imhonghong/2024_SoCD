@@ -1,24 +1,29 @@
-module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
-	input pass1;
-	input [1:0] bonus1;
-	input [6:0] effort;
-	input [4:0] hard, random2;
-	output pass2;
-	output [1:0] bonus2;
-	reg [2:0] additional_point;
-	wire very_hard = hard[4] & 1'b1; //hard>=16
-	wire notso_hard = ~(hard[4] | hard[3] | hard[2]); //hard<3
-	wire medium_hard = ~(very_hard | notso_hard);
-	wire [1:0] hard_rate = {very_hard, medium_hard};
-	always@(*)
-		case(hard_rate)
-			2'b10: additional_point <= (random2[0] | random2[1])? 3'd7 : 3'd0;
-			2'b01: additional_point <= {random2[3], 1'b0, random2[4]};
-			default: additional_point<= 3'd0;
-		endcase
-	wire [6:0] score = effort - {2'b00, hard} + {4'b0000, additional_point};
-	wire pass_test = (score >= 7'd70)? 1'b1: 1'b0;
-	wire pass_liver = (effort - {3'b000, bonus1, 2'b00} > 7'd80)? (random2[0] | random2[4]) :1'b1;
-	assign pass2 = pass_test & pass_liver & pass1;
-	assign bonus2 = (score > 7'd94)? 2'b11 :(score > 7'd87)? 2'b10 :(score > 7'd80)? 2'b01 : 2'b00;
+module stage3(pass3, luck3, slide, timing, bonus2, pass2);
+    output          pass3;
+	input   [2:0]   slide, timing, luck3;
+    input   [1:0]   bonus2;
+    input           pass2;
+    reg             accident0, accident1, accident2, accident3, fail0, fail1;
+    always@(*) begin
+        {fail0, fail1, accident0, accident1, accident2, accident3} = 6'b001111;
+        if(slide == 3'd0)
+            fail0 = 1'd0;
+        else if((slide < 3'd3)||(slide == 3'd3))
+            accident0 = (slide^(luck3[2:0]) == 3'b000)? ((bonus2==2'd3)?1'b0:1'b1) : 1'b0;
+        else if(slide > 3'd4)
+            accident1 = (slide^(luck3[2:0]) == 3'b001)? 1'b1 : 1'b0;
+		else begin
+			accident0 = 1'b0;
+			accident1 = 1'b0;
+		end
+        if(timing == 3'd0)
+            fail1 = 1'd0;
+        else if((timing < 3'd3)||(timing == 3'd3))
+            accident2 = (timing^(luck3[2:0]) == 3'b010)? ((bonus2>=2'd1)?1'b0:1'b1) : 1'b0;
+        else
+            accident3 = (timing^(luck3[2:0]) == 3'b100)? ((bonus2>=2'd2)?1'b0:1'b1) : 1'b0;
+        end
+	wire bonus3 = ((slide>3'd4)&&(accident1==0))? 1'b1 : 1'b0;
+	wire [2:0] bad = accident0*2 + accident1 + accident2*2 + accident3;
+    assign pass3 = (pass2 && fail0 && fail1)?((bad <= 3'd1)? 1'b1 :((bonus3)?1'b1 : 1'b0)) : 1'b0;
 endmodule
