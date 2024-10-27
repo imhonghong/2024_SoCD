@@ -23,7 +23,7 @@ module tb1();
 				fail = fail + 1;
 				$display("Fail at %d golden_out_pattern is %b, ckt output is %b%b, current input is %b", i, golden_out_pattern[i], bonus1,pass1, ipt_pattern[i]);
 			end
-			#10;
+			//#10;
 		end
 	end
 	
@@ -36,7 +36,7 @@ module tb1();
 	initial begin
 		#5242880;
 		if (fail == 0) begin
-			$display("Test passed");
+			$display("Test passed, %d pattern in total", `pat_len);
 		end
 		else
 			$display("There're %d fails", fail);
