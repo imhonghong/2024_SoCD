@@ -1,4 +1,4 @@
-module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
+]module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	input pass1;
 	input [1:0] bonus1;
 	input [6:0] effort;
