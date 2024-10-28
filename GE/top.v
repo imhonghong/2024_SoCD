@@ -29,7 +29,7 @@ assign no_parking = random1[4] & random1[2] & random1[0]; //finding no parking s
 assign pass1 = ~(car_accident | no_parking | late); //RT
 always@(*)	//monkey steal your breakfast, breakfast can get a bonus point
 	case(breakfast)
-		2'b01: bonus1 <= (over_speed)? {1'b0,|movement}: {1'b0,^movement};
+		2'b01: bonus1 <= (over_speed)? {1'b0,movement[0]|movement[1]}: {1'b0, movement[0] ^ movement[1] };
 		2'b10: bonus1 <= (over_speed)? {|movement, 1'b0}: (turtle_speed)? {movement[1]&random1[2],1'b0} : {movement[1]^movement[0]^random1[0], 1'b0}; 
 		2'b11: bonus1 <= (movement=={random1[3], random1[5]})? 2'b11: 2'b00;
 		default: bonus1 <= 2'b00;
@@ -64,26 +64,21 @@ module stage3(pass3, luck3, slide, timing, bonus2, pass2);
 	input   [2:0]   slide, timing, luck3;
     input   [1:0]   bonus2;
     input           pass2;
-    reg             accident0, accident1, accident2, accident3, fail0, fail1;
-   always@(*) //slide quality
-        if(slide == 3'd0)
-            fail0 = 1'd0;
-        else if((slide < 3'd3)||(slide == 3'd3))
-            accident0 = (slide^(luck3[2:0]) == 3'b000)? ((bonus2==2'd3)?1'b0:1'b1) : 1'b0;
-        else if(slide > 3'd4)
-            accident1 = (slide^(luck3[2:0]) == 3'b001)? 1'b1 : 1'b0;
-		else begin
-			accident0 = 1'b0;
-			accident1 = 1'b0;
-		end
-    always@(*) //report time
-        if(timing == 3'd0)
-            fail1 = 1'd0;
-        else if((timing < 3'd3)||(timing == 3'd3))
-            accident2 = (timing^(luck3[2:0]) == 3'b010)? ((bonus2>=2'd1)?1'b0:1'b1) : 1'b0;
-        else
-            accident3 = (timing^(luck3[2:0]) == 3'b100)? ((bonus2>=2'd2)?1'b0:1'b1) : 1'b0;
-	wire bonus3 = ((slide>3'd4)&&(accident1==0))? 1'b1 : 1'b0;
-	wire [2:0] bad = accident0*2 + accident1 + accident2*2 + accident3;
-    assign pass3 = (pass2 && fail0 && fail1)?((bad <= 3'd1)? 1'b1 :((bonus3)?1'b1 : 1'b0)) : 1'b0;
+    wire            accident0, accident1, accident2, accident3, fail0, fail1;
+	wire	[2:0]	bad;
+	reg				bonus3;
+	assign 	fail0 = (slide == 3'd0)? 1'b1 : 1'b0;
+	assign	fail1 = (timing == 3'd0)? 1'b1 : 1'b0;
+	assign	accident0 = (~((slide < 3'd3)||(slide == 3'd3)))? 1'b0: (~(slide^(luck3[2:0]) == 3'b000))? 1'b0 : (bonus2==2'd3)? 1'b0 : 1'b1;
+	assign	accident1 = (slide > 3'd4)? ((slide^(luck3[2:0]) == 3'b001)? 1'b1 : 1'b0): 1'b0;
+	assign 	accident2 = (~((timing < 3'd3)||(timing == 3'd3)))? 1'b0: (~(timing^(luck3[2:0]) == 3'b010))? 1'b0: (bonus2>=2'd1)? 1'b0 : 1'b1;
+	assign	accident3 = (~((timing > 3'd4)||(timing == 3'd4)))? 1'b0: (~(timing^(luck3[2:0]) == 3'b100))? 1'b0: (bonus2>=2'd2)? 1'b0 : 1'b1;
+	always@(*)begin
+		if((slide>3'd4)&&(accident1==1'b0))
+			bonus3 = 1'b1;
+		else
+			bonus3 = 1'b0;
+	end
+	assign bad = accident0*2 + accident1 + accident2*2 + accident3;
+    assign pass3 = ((~pass2) | fail0 | fail1)? 1'b0 : ((bad <= 3'd1)? 1'b1 :((bonus3)?1'b1 : 1'b0));
 endmodule
