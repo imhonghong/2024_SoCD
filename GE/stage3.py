@@ -19,56 +19,58 @@ def stage3(input_str):
     luck3_dec = int("".join(map(str, luck3)), base=2)
     bonus2_dec = int("".join(map(str, bonus2)), base=2)
     # logic
-    fail0 = 0
-    fail1 = 0
-    accident0 = 1
-    accident1 = 1
-    accident2 = 1
-    accident3 = 1
-    if slide_dec == 0:
-        fail0 = 0
-    elif slide_dec <= 3:
-        if slide[0]==luck3[0] and slide[1]==luck3[1] and slide[2]==luck3[2]:
+    fail0 = int(slide_dec==0)
+    fail1 = int(timing_dec==0)
+    if not(slide_dec <= 3): # accident0
+        accident0 = 0
+    else:
+        if not(slide[0] == luck3[0] and slide[1] == luck3[1] and slide[2] == luck3[2]):
+            accident0 = 0
+        else:
             if bonus2_dec == 3:
                 accident0 = 0
             else:
                 accident0 = 1
+    if slide_dec > 4:  # accident1
+        if slide[0] == luck3[0] and slide[1] == luck3[1] and slide[2] != luck3[2]:
+            accident1 = 1
         else:
-            accident0 = 0
-    elif slide_dec > 4:
-        accident1 = slide[0]==luck3[0] and slide[1]==luck3[1] and slide[2]!=luck3[2]
-    if timing_dec == 0:
-        fail1 = 0
-    elif timing_dec <= 3:
-        if timing[0]==luck3[0] and timing[1] != luck3[1] and timing[2] == luck3[2]:
-            if bonus2_dec >= 1 :
-                accident2 = 0
-            else :
-                accident2 = 1
-        else:
-            accident2 = 0
+            accident1 = 0
     else:
-        if timing[0] != luck3[0] and timing[1]==luck3[1] and timing[2]==luck3[2]:
+        accident1 = 0
+    if not(timing_dec <= 3): # accident2
+        accident2 = 0
+    else:
+        if not(timing[0] == luck3[0] and timing[1] != luck3[1] and timing[2] == luck3[2]):
+            accident2 = 0
+        else:
+            if bonus2_dec >= 1:
+                accident2 = 0
+            else:
+                accident2 = 1
+    if not(timing_dec >= 4):  # accident3
+        accident3 = 0
+    else:
+        if not(timing[0] != luck3[0] and timing[1] == luck3[1] and timing[2] != luck3[2]):
+            accident3 = 0
+        else:
             if bonus2_dec >= 2:
                 accident3 = 0
             else:
                 accident3 = 1
-        else: 
-            accident3 = 0
-
-    bonus3 = (slide_dec>4 and accident1==0)
+    bonus3 = int((slide_dec > 4) and (accident1 == 0))
     bad = accident0*2 + accident1 + accident2*2 + accident3
-
-    if pass2 and fail0 and fail1:
-        if bad<=1:
+    if pass2==0 or fail0==1 or fail1==1: # pass3
+        pass3 = 0
+    else:
+        if bad <= 1 :
             pass3 = 1
         else:
-            if bonus3:
+            if bonus3 == 1:
                 pass3 = 1
             else:
                 pass3 = 0
-    else:
-        pass3 = 0
+    
     output_str = str(pass3)
     return output_str
 
