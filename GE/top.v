@@ -7,9 +7,9 @@ module top(speed, random1, effort, random2, slide, timing, luck3,breakfast, move
 	output pass3;
 	wire [1:0] bonus1, bonus2;
 	wire pass1, pass2;
-	stage1 g1(speed, random1,breakfast, movement,weather,bonus1,pass1);
-	stage2 g2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
-	stage3 g3(pass3, luck3, slide, timing, bonus2, pass2);
+	stage1 g1(.speed(speed), .random1(random1), .breakfast(breakfast), .movement(movement), .weather(weather), .bonus1(bonus1), .pass1(pass1));
+	stage2 g2(.pass2(pass2), .bonus2(bonus2), .pass1(pass1), .bonus1(bonus1), .effort(effort), .hard(hard), .random2(random2));
+	stage3 g3(.pass3(pass3), .luck3(luck3), .slide(slide), .timing(timing), .bonus2(bonus2), .pass2(pass2));
 endmodule
 module stage1(speed, random1,breakfast, movement,weather,bonus1,pass1);
 input [6:0]	speed, random1;
@@ -60,11 +60,11 @@ module stage2(pass2, bonus2, pass1, bonus1, effort, hard, random2);
 	assign bonus2 = (score > 7'd94)? 2'b11 :(score > 7'd87)? 2'b10 :(score > 7'd80)? 2'b01 : 2'b00;
 endmodule
 module stage3(pass3, luck3, slide, timing, bonus2, pass2);
-    output          pass3;
+   	output          pass3;
 	input   [2:0]   slide, timing, luck3;
-    input   [1:0]   bonus2;
-    input           pass2;
-    wire            accident0, accident1, accident2, accident3, fail0, fail1;
+   	input   [1:0]   bonus2;
+    	input           pass2;
+    	wire            accident0, accident1, accident2, accident3, fail0, fail1;
 	wire	[2:0]	bad;
 	reg				bonus3;
 	assign 	fail0 = (slide == 3'd0)? 1'b1 : 1'b0;
