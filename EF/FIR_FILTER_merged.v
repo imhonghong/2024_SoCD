@@ -1,7 +1,3 @@
-`include "DFF16_chain31.v"
-`include "add1_6.v"
-`include "counter_u1.v"
-
 module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
 	input clk;
 	input rst;
