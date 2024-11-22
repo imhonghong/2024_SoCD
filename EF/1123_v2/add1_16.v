@@ -1,0 +1,22 @@
+module add1_16(A,S);
+input [15:0]A;
+output [15:0]S;
+wire [15:0]C;
+assign C[0]=1'b1;
+assign C[1]=A[0];
+assign C[2]=C[1]&A[1];
+assign C[3]=C[2]&A[2];
+assign C[4]=C[3]&A[3];
+assign C[5]=C[4]&A[4];
+assign C[6]=C[5]&A[5];
+assign C[7]=C[6]&A[6];
+assign C[8]=C[7]&A[7];
+assign C[9]=C[8]&A[8];
+assign C[10]=C[9]&A[9];
+assign C[11]=C[10]&A[10];
+assign C[12]=C[11]&A[11];
+assign C[13]=C[12]&A[12];
+assign C[14]=C[13]&A[13];
+assign C[15]=C[14]&A[14];
+assign S=A^C;
+endmodule
