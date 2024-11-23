@@ -6,9 +6,8 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
 	output [15:0] fir_d;
 	output fir_valid;
 		
-wire [5:0]	cnt;
 wire cnt33;	
-counter_u1 cnt1(.clk(clk), .rst(rst), .cnt(cnt), .data_valid(data_valid), .cnt33(cnt33));
+counter_u1 cnt1(.clk(clk), .rst(rst), .data_valid(data_valid), .cnt33(cnt33));
 wire signed [15:0]	dout00, dout01, dout02, dout03, dout04, dout05, dout06, dout07,
 					dout08,	dout09, dout10, dout11, dout12, dout13, dout14, dout15,
 					dout16, dout17, dout18, dout19, dout20, dout21, dout22, dout23,
@@ -132,9 +131,8 @@ assign sum_all =  	product00 + product01 + product02 + product03 + product04 + p
 endmodule
 
 
-module counter_u1(clk, rst, cnt, data_valid, cnt33);
+module counter_u1(clk, rst, data_valid, cnt33);
 input clk, rst, data_valid;
-output [5:0] cnt;
 output cnt33;
 
 reg [5:0] cnt;
