@@ -290,7 +290,7 @@ module FFT(
 			end
 	end
 	
-	assign delay_valid_n = (counter_acc>=DELAY_CYCLES)? 1'b1: 1'b0;
+	assign delay_valid_n = counter_acc[5];
 	assign dout_valid_n = delay_valid & cnt16;
 	always@(*) begin
 		if((counter_acc < DELAY_CYCLES) && fir_valid && (!delay_valid)) begin
@@ -507,61 +507,52 @@ module FFT(
 	.dout_br(doutbr_s2),
 	.dout_bi(doutbi_s2));
 	
-	
-    always @(posedge clk or posedge rst)   //assign to the output
-		begin
-			if (rst) 
-				begin
-				    fft_d0  <= 32'd0;
-					fft_d1  <= 32'd0;
-					fft_d2  <= 32'd0;
-					fft_d3  <= 32'd0;
-					fft_d4  <= 32'd0;
-					fft_d5  <= 32'd0;
-					fft_d6  <= 32'd0;
-					fft_d7  <= 32'd0;
-					fft_d8  <= 32'd0;
-					fft_d9  <= 32'd0;
-					fft_d10 <= 32'd0;
-					fft_d11 <= 32'd0;
-					fft_d12 <= 32'd0;
-					fft_d13 <= 32'd0;
-					fft_d14 <= 32'd0;
-					fft_d15 <= 32'd0;																			  
-				end 
-			else if (state[count_bit-1])
-				begin
-					case (state[count_bit-2:0])
-					3'b000:begin fft_d0  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; //case 0					
-								 fft_d8  <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};	
-							end 
-					3'b001:begin fft_d2  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 1
-								 fft_d10 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b010:begin fft_d1  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 2
-								 fft_d9  <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b011:begin fft_d3  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 3
-								 fft_d11 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b100:begin fft_d4  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 4
-								 fft_d12 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b101:begin fft_d6  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 5
-								 fft_d14 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b110:begin fft_d5  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 6
-								 fft_d13 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end  
-					3'b111:begin fft_d7  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]}; // Case 7
-								 fft_d15 <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
-							end 
-					default: ;       
-					endcase
-				end
-			else
-			;
-		end
+	//assign fft output
+	reg [31:0] 	fft_d0_n, fft_d1_n, fft_d2_n, fft_d3_n, fft_d4_n, fft_d5_n, fft_d6_n, fft_d7_n,
+				fft_d8_n, fft_d9_n, fft_d10_n, fft_d11_n, fft_d12_n, fft_d13_n, fft_d14_n, fft_d15_n;
+	always@(posedge clk or posedge rst) begin
+		if (rst) begin
+			fft_d0  <= 32'd0;	fft_d1  <= 32'd0;	fft_d2  <= 32'd0;	fft_d3  <= 32'd0;
+			fft_d4  <= 32'd0;	fft_d5  <= 32'd0;	fft_d6  <= 32'd0;	fft_d7  <= 32'd0;
+			fft_d8  <= 32'd0;	fft_d9  <= 32'd0;	fft_d10 <= 32'd0;	fft_d11 <= 32'd0;
+			fft_d12 <= 32'd0;	fft_d13 <= 32'd0;	fft_d14 <= 32'd0;	fft_d15 <= 32'd0;
+			end
+		else begin
+			fft_d0  <= fft_d0_n;	fft_d1  <= fft_d1_n;	fft_d2  <= fft_d2_n;	fft_d3  <= fft_d3_n;
+			fft_d4  <= fft_d4_n;	fft_d5  <= fft_d5_n;	fft_d6  <= fft_d6_n;	fft_d7  <= fft_d7_n;
+			fft_d8  <= fft_d8_n;	fft_d9  <= fft_d9_n;	fft_d10 <= fft_d10_n;	fft_d11 <= fft_d11_n;
+			fft_d12 <= fft_d12_n;	fft_d13 <= fft_d13_n;	fft_d14 <= fft_d14_n;	fft_d15 <= fft_d15_n;
+			end
+	end
+	always@(*) begin
+		case (state[2:0])
+				3'b000:begin fft_d0_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};					
+							 fft_d8_n  <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};	
+						end 
+				3'b001:begin fft_d2_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d10_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b010:begin fft_d1_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d9_n  <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b011:begin fft_d3_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d11_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b100:begin fft_d4_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d12_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b101:begin fft_d6_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d14_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b110:begin fft_d5_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d13_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end  
+				3'b111:begin fft_d7_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
+							 fft_d15_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
+						end 
+				default: ;       
+				endcase
+	end
 
 endmodule
 
@@ -676,8 +667,9 @@ always@(posedge clk or posedge rst)
 	assign tempa_low = lowa * lowa;
 endmodule
 
-module fft_but#(parameter IN_W = 24,parameter Factor_W = 24)
-(din_ar,din_ai,din_br,din_bi,ctr1,dout_ar,dout_ai,dout_br,dout_bi);
+module fft_but
+	#(parameter IN_W = 24,parameter Factor_W = 24)
+	(din_ar,din_ai,din_br,din_bi,ctr1,dout_ar,dout_ai,dout_br,dout_bi);
 	input signed [IN_W-1:0] din_ar,din_ai,din_br,din_bi;
 	input [2:0] ctr1;
 	output signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi;
