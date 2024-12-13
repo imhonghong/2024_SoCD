@@ -77,7 +77,7 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
  input [15:0] data;
  output [15:0] fir_d;
  output fir_valid;
-//`include "./dat/FIR_coefficient.dat"
+
 	parameter signed [15:0] FIR_C00 = 16'hFF9E ;    //The FIR_coefficient value 0: -1.495361e-003
 	parameter signed [15:0] FIR_C01 = 16'hFF86 ;    //The FIR_coefficient value 1: -1.861572e-003
 	parameter signed [15:0] FIR_C02 = 16'hFFA7 ;    //The FIR_coefficient value 2: -1.358032e-003
@@ -116,8 +116,9 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
 	integer i;
 	//shift register
 	reg signed [15:0] shift_reg [31:0];
+	/* modify doesn't work
 	reg signed [15:0] shift_reg_n [31:0];
-    /*
+    
 	always @(posedge clk or posedge rst) begin
         if (rst) begin
             for (i=0; i<32; i=i+1) begin
@@ -130,7 +131,7 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
             end
 		end	
     end
-	*/
+	
 	always@(*) begin
 		if (data_valid) begin
 			shift_reg_n[0] <= data;
@@ -144,6 +145,7 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
 				end
 			end
 	end
+	*/
 	always @(posedge clk or posedge rst) begin
         if (rst) begin
             for (i=0; i<32; i=i+1) begin
@@ -156,7 +158,8 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
                 shift_reg[i+1] <= shift_reg[i];
 				end
 			end
-    end
+	end
+	
 	//sum
 	wire signed [31:0] prod[15:0];
 	assign prod[0] = (shift_reg[0] + shift_reg[31]) * FIR_C00;
@@ -200,28 +203,29 @@ module FIR_FILTER(clk, rst, data_valid, data, fir_d, fir_valid);
 
 endmodule
 
-module FFT
-(clk,
-rst,
-fir_valid,
-fir_d,
-dout_valid,
-fft_d0,
-fft_d1,
-fft_d2,
-fft_d3,
-fft_d4,
-fft_d5,
-fft_d6,
-fft_d7,
-fft_d8,
-fft_d9,
-fft_d10,
-fft_d11,
-fft_d12,
-fft_d13,
-fft_d14,
-fft_d15);
+module FFT(
+	clk,
+	rst,
+	fir_valid,
+	fir_d,
+	dout_valid,
+	fft_d0,
+	fft_d1,
+	fft_d2,
+	fft_d3,
+	fft_d4,
+	fft_d5,
+	fft_d6,
+	fft_d7,
+	fft_d8,
+	fft_d9,
+	fft_d10,
+	fft_d11,
+	fft_d12,
+	fft_d13,
+	fft_d14,
+	fft_d15
+	);
 	parameter WIDTH = 16;
 	parameter WIDTH_but = 24;
 	parameter count_bit = 4;
@@ -260,12 +264,13 @@ fft_d15);
 	
 	
 	wire  [count_bit-1:0] state; //the state of the counter
-	
+	wire cnt16;
 	counter u1(
 	.clk(clk), // clock signal
 	.rst(rst), // reset signal
 	.valid(fir_valid), // start counting when valid is high
-	.counter(state) // output  of the counter
+	.counter(state), // output  of the counter
+	.cnt16(cnt16)
 	);
 
 	reg [5:0] counter; 
@@ -283,19 +288,19 @@ fft_d15);
 			else if (counter >= DELAY_CYCLES) // 
 				valid_out <= 1'b1;
 
-			dout_valid <= valid_out & (&state); //  dout_valid
+			dout_valid <= valid_out & cnt16; //  dout_valid
 		end
 	end
 	
 	wire [WIDTH-1:0] dinar_16,dinbr_16;
 	
-	buffer_in  a1(       //the mem between fir and fft
+	STP  fas_fft_stp(       //the mem between fir and fft
 	.clk(clk), 
 	.rst(rst), 
 	.din(fir_d),         
 	.dout1(dinar_16), 
-	.dout2(dinbr_16) );
-	
+	.dout2(dinbr_16)
+	);
 	
 	wire signed[WIDTH_but-1:0] doutar_8first;
 	wire signed[WIDTH_but-1:0] doutai_8first;
@@ -663,37 +668,38 @@ endmodule
 
 module fft_but#(parameter IN_W = 24,parameter Factor_W = 24)
 (din_ar,din_ai,din_br,din_bi,ctr1,dout_ar,dout_ai,dout_br,dout_bi);
-input signed [IN_W-1:0] din_ar,din_ai,din_br,din_bi;
-input [2:0] ctr1;
-output signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi;
-wire signed [IN_W-1:0] dout_br_1,dout_bi_1;
-wire signed [IN_W+1:0] dout_br_2,dout_bi_2;
-wire signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi,a,a_inv,b,c,d;
-wire signed [IN_W+Factor_W-1:0] mul_r,mul_i;
+	input signed [IN_W-1:0] din_ar,din_ai,din_br,din_bi;
+	input [2:0] ctr1;
+	output signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi;
 
-assign dout_ar = din_ar + din_br;
-assign dout_ai = din_ai + din_bi;
-assign a = din_ar - din_br;
-assign b = din_ai - din_bi;
+	wire signed [IN_W-1:0] dout_br_1,dout_bi_1;
+	wire signed [IN_W+1:0] dout_br_2,dout_bi_2;
+	wire signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi,a,a_inv,b,c,d;
+	wire signed [IN_W+Factor_W-1:0] mul_r,mul_i;
 
-// for W1,W4
-assign a_inv = -a;// c-a
-assign dout_br_1 = (ctr1==3'd4)?{b[23],b[22:0]}:{a[23],a[22:0]};
-assign dout_bi_1 = (ctr1==3'd4)?{a_inv[23],a_inv[22:0]}:{b[23],b[22:0]};
+	assign dout_ar = din_ar + din_br;
+	assign dout_ai = din_ai + din_bi;
+	assign a = din_ar - din_br;
+	assign b = din_ai - din_bi;
 
-// for opr set 26 ,1357
-mul_process m0(a,b,ctr1,mul_r,mul_i);
-assign dout_br_2 = mul_r[IN_W+Factor_W-7:Factor_W-8];
-assign dout_bi_2 = mul_i[IN_W+Factor_W-7:Factor_W-8];
+	// for W1,W4
+	assign a_inv = -a;// c-a
+	assign dout_br_1 = (ctr1==3'd4)?{b[23],b[22:0]}:{a[23],a[22:0]};
+	assign dout_bi_1 = (ctr1==3'd4)?{a_inv[23],a_inv[22:0]}:{b[23],b[22:0]};
 
-assign dout_br=(~(ctr1[0]|ctr1[1]))?(dout_br_1):(dout_br_2[IN_W-1:0]);
-assign dout_bi=(~(ctr1[0]|ctr1[1]))?(dout_bi_1):(dout_bi_2[IN_W-1:0]);
+	// for opr set 26 ,1357
+	mul_process m0(a,b,ctr1,mul_r,mul_i);
+	assign dout_br_2 = mul_r[IN_W+Factor_W-7:Factor_W-8];
+	assign dout_bi_2 = mul_i[IN_W+Factor_W-7:Factor_W-8];
+
+	assign dout_br=(~(ctr1[0]|ctr1[1]))?(dout_br_1):(dout_br_2[IN_W-1:0]);
+	assign dout_bi=(~(ctr1[0]|ctr1[1]))?(dout_bi_1):(dout_bi_2[IN_W-1:0]);
 
 endmodule
 
 module mul_process #(parameter WIDTH = 24) (
-    input signed [WIDTH-1:0] a, // signed input a
-    input signed [WIDTH-1:0] b, // signed input b
+    input signed [WIDTH-1:0] a,
+    input signed [WIDTH-1:0] b,
 	input [2:0] ctr1,
 	output signed [(2*WIDTH)-1:0] mul_r,mul_i   
 );
@@ -707,9 +713,9 @@ module mul_process #(parameter WIDTH = 24) (
 	parameter signed[23:0] W_R1 = 24'h00EC83;   
 	parameter signed[23:0] W_R2 = 24'h00B504;      
 				 
-	assign mul_mode=(ctr1==3'd2|ctr1==3'd6)?(1):(0);	
-	assign sw_inv=(ctr1==3'd3|ctr1==3'd5)?(1):(0);
-	assign ctr_inv=(ctr1==3'd3|ctr1==3'd6|ctr1==3'd7)?(1):(0);
+	assign mul_mode= ctr1[1] & (~ctr1[0]);
+	assign sw_inv= (~ctr1[2] & ctr1[1] & ctr1[0]) |(ctr1[2] & ~ctr1[1] & ctr1[0]);
+	assign ctr_inv= (ctr1[1] & ctr1[0]) | (ctr1[2] & ctr1[1]);
 		
 	always@(*)
 		if(mul_mode)
@@ -742,85 +748,70 @@ module mul_process #(parameter WIDTH = 24) (
 	
 endmodule
 
-module fft_but_ctr2#(parameter IN_W = 24,parameter Factor_W = 24)
-(din_ar,din_ai,din_br,din_bi,ctr,dout_ar,dout_ai,dout_br,dout_bi);
-input signed [IN_W-1:0] din_ar,din_ai,din_br,din_bi;
-input ctr;
-output signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi;
-wire signed [IN_W:0] a,b,a_inv;
+module fft_but_ctr2
+	#(parameter IN_W = 24,parameter Factor_W = 24)
+	(din_ar,din_ai,din_br,din_bi,ctr,dout_ar,dout_ai,dout_br,dout_bi);
+	
+	input signed [IN_W-1:0] din_ar,din_ai,din_br,din_bi;
+	input ctr;
+	output signed [IN_W-1:0] dout_ar,dout_ai,dout_br,dout_bi;
+	wire signed [IN_W:0] a,b,a_inv;
 
-assign dout_ar = din_ar + din_br;
-assign dout_ai = din_ai + din_bi;
-assign a = din_ar - din_br;// a-c
-assign a_inv = -a;// c-a
-assign b = din_ai - din_bi;// b-d
+	assign dout_ar = din_ar + din_br;
+	assign dout_ai = din_ai + din_bi;
+	assign a = din_ar - din_br;// a-c
+	assign a_inv = -a;// c-a
+	assign b = din_ai - din_bi;// b-d
 
-assign dout_br = (ctr)?{b[23],b[22:0]}:{a[23],a[22:0]};
-assign dout_bi = (ctr)?{a_inv[23],a_inv[22:0]}:{b[23],b[22:0]};
+	assign dout_br = (ctr)?{b[23],b[22:0]}:{a[23],a[22:0]};
+	assign dout_bi = (ctr)?{a_inv[23],a_inv[22:0]}:{b[23],b[22:0]};
 
 endmodule
 
-module buffer_in
-(clk, rst, din, dout1, dout2 );
-    parameter WIDTH = 16;
+module STP(clk, rst, din, dout1, dout2 );
+	parameter WIDTH = 16;
     parameter DEPTH = 16;
-	
-    input wire clk; // clock signal
+    
+	input wire clk; // clock signal
     input wire rst; // reset signal
     input wire [WIDTH-1:0] din; // 16-bit input data
 	output reg [WIDTH-1:0] dout1, dout2;
-    reg [WIDTH-1:0] mem [0:DEPTH-1]; // 16x16 memory output
-
+	
+	reg [WIDTH-1:0] mem [0:DEPTH-1]; // 16x16 memory output
     integer i,j;
 
     always @(posedge clk or posedge rst) begin
-        if (rst) 
-			begin
-				// Reset all memory cells to 0
-				dout1 <= {WIDTH{1'b0}};
-				dout2 <= {WIDTH{1'b0}};
-				for (i = 0; i < DEPTH; i = i + 1) 
-					begin
-						mem[i] <= {WIDTH{1'b0}};
-					end
-			end 
-		else 
-			begin
-				// Shift all memory cells down and insert new data at the top
-				for (j = DEPTH-1; j > 0; j = j - 1) 
-					begin
-						mem[j] <= mem[j-1];
-					end
-				mem[0] <= din;
-				dout1 <= mem[15];
-				dout2 <= mem[7];
+        if (rst) begin
+			dout1 <= {WIDTH{1'b0}};// Reset all memory cells to 0
+			dout2 <= {WIDTH{1'b0}};
+			for (i = 0; i < DEPTH; i = i + 1) begin
+				mem[i] <= {WIDTH{1'b0}};
+				end
 			end
-
+		else begin	// Shift all memory cells down and insert new data at the top
+			mem[0] <= din;
+			for (j = DEPTH-1; j > 0; j = j - 1) begin
+				mem[j] <= mem[j-1];
+				end
+			dout1 <= mem[15];
+			dout2 <= mem[7];
+			end
     end
-
 endmodule
 
 
 
-module counter (clk, rst, valid,counter);
+module counter (clk, rst, valid,counter
+,cnt16);
 
 parameter count_bit = 4;
 input wire clk; // clock signal
 input wire rst; // reset signal
 input wire valid; // start counting when valid is high
 output reg [count_bit-1:0] counter; // output  of the counter
+output cnt16;
 reg	[count_bit-1:0] n_counter; 
-	/*
-    always @(posedge clk or posedge rst)
-		begin
-			if (rst) 
-				counter <= 4'b1111; // Reset counter to 0
-			else if (valid && counter == 4'b1111) 
-				counter <=  4'b0000;
-			else 
-				counter <= counter + valid; // Count 0-15 and loop
-		end
-	*/
+
 	wire cnt16 = &counter;
 	always@(*) begin
 		if (valid && cnt16) begin
@@ -832,14 +823,14 @@ reg	[count_bit-1:0] n_counter;
 	end
 	always@(posedge clk or posedge rst)	begin
 		if (rst)
-			counter <= 4'b1110;
+			counter <= 4'b1110;	//15 because comb -> seq
 		else
 			counter <= n_counter;
 	end
 	
 endmodule
 
-module buffer_8 #(
+module buffer_8#(
     parameter WIDTH = 24,
     parameter DEPTH = 8 // 3-bit address space for 8 locations
 ) (
@@ -865,18 +856,16 @@ module buffer_8 #(
     // Write logic for real and imaginary parts
 	integer i;
     always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            // Reset all memory cells to 0
-
+        if (rst) begin // Reset all memory cells to 0
             for (i = 0; i < DEPTH; i = i + 1) begin
                 memr[i] <= {WIDTH{1'b0}};
                 memi[i] <= {WIDTH{1'b0}};
-            end
-        end else if (wr_en) begin
-            // Write data to the specified address
-            memr[write_addr] <= dinr;
-            memi[write_addr] <= dini;
-        end
+				end
+			end
+		else if (wr_en) begin // Write data to the specified address
+			memr[write_addr] <= dinr;
+			memi[write_addr] <= dini;
+			end
     end
 
     // Read logic for real and imaginary parts
