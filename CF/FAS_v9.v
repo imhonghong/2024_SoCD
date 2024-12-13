@@ -272,25 +272,35 @@ module FFT(
 	.counter(state), // output  of the counter
 	.cnt16(cnt16)
 	);
+	parameter DELAY_CYCLES = 32;
 
-	reg [5:0] counter; 
-	reg valid_out;
-	parameter DELAY_CYCLES = 47;
-	always @(posedge clk or posedge rst) begin
+	reg [5:0] counter_acc, counter_acc_n;
+	reg delay_valid;
+	wire dout_valid_n, delay_valid_n;
+	always@(posedge clk or posedge rst) begin
 		if (rst) begin
-			counter   <= 6'd0;      //  counter
-			valid_out <= 1'b0;      //  valid_out
-			dout_valid <= 1'b0;     //  dout_valid
-		end 
+			counter_acc <= 6'b0;
+			delay_valid <= 1'b0;
+			dout_valid <= 1'b0;
+			end
 		else begin
-			if ((counter < DELAY_CYCLES) && (fir_valid && !valid_out)) 
-				counter <= counter + 1;			
-			else if (counter >= DELAY_CYCLES) // 
-				valid_out <= 1'b1;
-
-			dout_valid <= valid_out & cnt16; //  dout_valid
-		end
+			counter_acc <= counter_acc_n;
+			delay_valid <= delay_valid_n;
+			dout_valid <= dout_valid_n;
+			end
 	end
+	
+	assign delay_valid_n = (counter_acc>=DELAY_CYCLES)? 1'b1: 1'b0;
+	assign dout_valid_n = delay_valid & cnt16;
+	always@(*) begin
+		if((counter_acc < DELAY_CYCLES) && fir_valid && (!delay_valid)) begin
+			counter_acc_n <= counter_acc + 6'd1;
+			end
+		else begin
+			counter_acc_n <= counter_acc;
+			end
+	end
+	
 	
 	wire [WIDTH-1:0] dinar_16,dinbr_16;
 	
