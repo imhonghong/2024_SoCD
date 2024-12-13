@@ -525,7 +525,14 @@ module FFT(
 			end
 	end
 	always@(*) begin
-		case (state[2:0])
+		if (rst) begin
+			fft_d0_n  <= 32'd0;	fft_d1_n  <= 32'd0;	fft_d2_n  <= 32'd0;	fft_d3_n  <= 32'd0;
+			fft_d4_n  <= 32'd0;	fft_d5_n  <= 32'd0;	fft_d6_n  <= 32'd0;	fft_d7_n  <= 32'd0;
+			fft_d8_n  <= 32'd0;	fft_d9_n  <= 32'd0;	fft_d10_n <= 32'd0;	fft_d11_n <= 32'd0;
+			fft_d12_n <= 32'd0;	fft_d13_n <= 32'd0;	fft_d14_n <= 32'd0;	fft_d15_n <= 32'd0;
+			end
+		else begin
+			case (state[2:0])
 				3'b000:begin fft_d0_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};					
 							 fft_d8_n  <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};	
 						end 
@@ -550,8 +557,9 @@ module FFT(
 				3'b111:begin fft_d7_n  <= {doutar_s2[WIDTH_but-1:WIDTH_but-16] , doutai_s2[WIDTH_but-1:WIDTH_but-16]};
 							 fft_d15_n <= {doutbr_s2[WIDTH_but-1:WIDTH_but-16] , doutbi_s2[WIDTH_but-1:WIDTH_but-16]};
 						end 
-				default: ;       
+				default: ;    
 				endcase
+			end
 	end
 
 endmodule
